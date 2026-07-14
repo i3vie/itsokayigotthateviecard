@@ -1,0 +1,9 @@
+{
+    "id": "ioigtec",
+    "name": "It's Okay I Got That Evie Card",
+    "author": ["i3vie"],
+    "description": "mod for when it's okay because you got that Evie card",
+    "version": "1.0.0",
+    "prefix": "ioigtec",
+    "main_file": "ioigtec.lua"
+}
