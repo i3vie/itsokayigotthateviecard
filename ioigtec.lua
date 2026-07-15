@@ -169,7 +169,7 @@ SMODS.Joker {
             }
         }
     end,
-    rarity = 3,
+    rarity = 2,
     atlas = "ioigtec",
     pos = { x = 0, y = 0 },
     cost = 6,
