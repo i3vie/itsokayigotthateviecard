@@ -195,3 +195,123 @@ SMODS.Joker {
         end
     end
 }
+
+SMODS.Joker {
+    key = "robin_hood",
+    loc_txt = {
+        name = "Robin Hood",
+        text = {
+            "Each scored {C:attention}face card{}",
+            "adds {X:mult,C:white}X#2#{} Mult",
+            "to this Joker, then is",
+            "{C:attention}destroyed{} after scoring",
+            "{C:inactive}(Currently {X:mult,C:white}X#1#{C:inactive} Mult)"
+        }
+    },
+    config = {
+        extra = {
+            destroyed = 1,
+            gain = 1.75
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                card.ability.extra.destroyed,
+                card.ability.extra.gain
+            }
+        }
+    end,
+    rarity = 4,
+    atlas = "ioigtec",
+    pos = { x = 3, y = 0 },
+    soul_pos = { x = 4, y = 0 },
+    cost = 20,
+    calculate = function(self, card, context)
+        card.ability.extra.destroyed = card.ability.extra.destroyed or 1
+
+        if context.before and context.scoring_hand and not context.blueprint then
+            local destroyed = 0
+
+            for _, scoring_card in ipairs(context.scoring_hand) do
+                if scoring_card:is_face() then
+                    destroyed = destroyed + 1
+                end
+            end
+
+            if destroyed > 0 then
+                card.ability.extra.destroyed = card.ability.extra.destroyed + destroyed * card.ability.extra.gain
+
+                return {
+                    message = localize('k_upgrade_ex'),
+                    colour = G.C.MULT
+                }
+            end
+        end
+
+        if context.destroying_card and context.cardarea == G.play and not context.blueprint then
+            if context.destroying_card:is_face() then
+                return {
+                    remove = true
+                }
+            end
+        end
+
+        if context.joker_main and card.ability.extra.destroyed > 0 then
+            return {
+                x_mult = card.ability.extra.destroyed
+            }
+        end
+    end
+}
+
+SMODS.Joker {
+    key = "retransmit",
+    loc_txt = {
+        name = "Retransmit",
+        text = {
+            "Each scored card has a",
+            "{C:green}#1# in #2#+n{} chance to",
+            "{C:attention}retrigger{}, increasing {C:attention}n{}",
+            "by {C:attention}1{} until a roll fails",
+            "{C:inactive}(n starts at 0)"
+        }
+    },
+    config = {
+        extra = {
+            odds = 2
+        }
+    },
+    loc_vars = function(self, info_queue, card)
+        return {
+            vars = {
+                G.GAME and G.GAME.probabilities and G.GAME.probabilities.normal or 1,
+                card.ability.extra.odds
+            }
+        }
+    end,
+    rarity = 2,
+    atlas = "ioigtec",
+    pos = { x = 5, y = 0 },
+    cost = 8,
+    calculate = function(self, card, context)
+        if context.repetition and context.cardarea == G.play and context.other_card then
+            local repetitions = 0
+            local odds = card.ability.extra.odds
+            local seed = "retransmit" .. (context.other_card.sort_id or 0) .. "_"
+
+            while SMODS.pseudorandom_probability(card, seed .. odds, 1, odds, "Retransmit") do
+                repetitions = repetitions + 1
+                odds = odds + 1
+            end
+
+            if repetitions > 0 then
+                return {
+                    message = localize("k_again_ex"),
+                    repetitions = repetitions,
+                    card = card
+                }
+            end
+        end
+    end
+}
